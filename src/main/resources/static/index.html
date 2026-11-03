@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MediTrack – Patient Treatment Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Figtree:wght@400;500;600;700&family=Syne:wght@800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.143.0/build/three.module.js"}}</script>
+<style>
+:root{--bg:#0A0A0A;--cer:#007BA7;--cer-2:#2fb4e0;--rose:#FF2D95;--ink:#f1f6f9;--muted:#8fa3ad;--muted2:#5d717b;
+--line:rgba(0,123,167,.28);--line2:rgba(0,123,167,.5);--glass:rgba(10,14,18,.62);--glass2:rgba(8,20,28,.74);
+--r:18px;--maxw:1160px;--disp:'Unbounded',system-ui,sans-serif;--font:'Figtree',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth{scroll-behavior:auto!important}
+#scene{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;display:block}
+.page{position:relative;z-index:1}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.22,.7,.2,1),transform .7s cubic-bezier(.22,.7,.2,1);transition-delay:var(--rd,0ms)}
+[data-reveal].in{opacity:1;transform:none}
+/* nav + hero */
+.hero{min-height:100vh;display:flex;flex-direction:column;background:radial-gradient(110% 60% at 30% -10%,rgba(10,10,10,.85),transparent 65%)}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.brand{display:inline-flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:700;font-size:17px;letter-spacing:.04em}
+.brand i{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--cer),var(--rose));display:grid;place-items:center;animation:beat 1.2s ease-in-out infinite}
+.brand i svg{width:14px;height:14px;fill:#fff}
+@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.15)}30%{transform:scale(1)}45%{transform:scale(1.08)}}
+.nav-links{display:flex;gap:28px;font-size:14.5px;color:var(--muted)}.nav-links a:hover{color:var(--ink)}
+.pulse-pill{display:flex;align-items:center;gap:9px;padding:8px 16px;border-radius:999px;border:1px solid var(--line2);background:rgba(0,123,167,.12);font-size:14px;font-variant-numeric:tabular-nums}
+.pulse-pill .d{width:9px;height:9px;border-radius:50%;background:var(--rose);box-shadow:0 0 12px var(--rose);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+.hero-body{flex:1;display:flex;align-items:center;padding-bottom:8vh}
+.hero-copy{max-width:620px}
+.hero-copy h1{font-family:var(--disp);font-weight:800;font-size:clamp(34px,5.6vw,68px);line-height:1.04;letter-spacing:-.03em;text-shadow:0 2px 40px rgba(0,0,0,.7)}
+.hero-copy h1 span{background:linear-gradient(100deg,var(--cer-2),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-copy p{margin-top:22px;max-width:520px;color:var(--muted);font-size:clamp(16px,2vw,18px);line-height:1.65}
+.btn{display:inline-flex;align-items:center;gap:9px;font:600 15px var(--font);padding:13px 22px;border-radius:999px;border:1px solid transparent;cursor:pointer;color:#fff;transition:transform .18s,box-shadow .25s,background .2s}
+.btn-primary{background:linear-gradient(120deg,var(--cer),#0a9bd0);box-shadow:0 10px 30px -8px rgba(0,123,167,.8),inset 0 1px 0 rgba(255,255,255,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 36px -8px rgba(255,45,149,.55)}
+.btn-primary:disabled{opacity:.6;cursor:wait;transform:none}
+.btn-line{background:rgba(255,255,255,.04);border-color:var(--line2);backdrop-filter:blur(10px)}.btn-line:hover{background:rgba(255,45,149,.12);border-color:var(--rose);transform:translateY(-2px)}
+.acts{display:flex;gap:12px;margin-top:34px;flex-wrap:wrap}
+/* sections */
+.sec{padding:clamp(60px,9vw,120px) 0}
+.sec-head{max-width:620px;margin-bottom:38px}
+h2{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.4vw,38px);letter-spacing:-.02em;line-height:1.1;text-shadow:0 2px 30px #000}
+.sec-head p,.hint{color:var(--muted);line-height:1.6;margin-top:12px;font-size:15px}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(16px);padding:24px;position:relative;transition:border-color .25s,transform .25s}
+.card:hover{border-color:var(--line2)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat b{display:block;font-family:var(--disp);font-size:clamp(28px,3.6vw,40px);font-weight:800;font-variant-numeric:tabular-nums;background:linear-gradient(180deg,#fff,var(--cer-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat:nth-child(3) b{background:linear-gradient(180deg,#fff,var(--rose));-webkit-background-clip:text;background-clip:text}
+.stat span{color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.full{grid-column:1/-1}
+h3{font-family:var(--disp);font-size:17px;font-weight:700}
+code{font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--cer-2)}
+label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:14px 0 6px}
+textarea,input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:rgba(0,0,0,.4);color:var(--ink);font:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+textarea{min-height:96px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:13.5px}
+textarea:focus,input:focus{border-color:var(--rose);box-shadow:0 0 0 4px rgba(255,45,149,.16)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center}
+.chip{font:600 12.5px var(--font);color:var(--cer-2);background:rgba(0,123,167,.16);border:1px solid var(--line);border-radius:20px;padding:5px 12px;cursor:pointer}.chip:hover{border-color:var(--rose);color:#fff}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;font-weight:700;font-size:12px;letter-spacing:.04em}
+.pill.COMPLETED{background:rgba(0,123,167,.2);color:var(--cer-2);border:1px solid var(--line2)}
+.pill.PENDING{background:rgba(255,45,149,.14);color:var(--rose);border:1px solid rgba(255,45,149,.45)}
+.tick{width:13px;height:13px}.tick path{stroke:currentColor;stroke-width:3;fill:none;stroke-dasharray:24;stroke-dashoffset:24;animation:draw .6s .2s forwards;stroke-linecap:round;stroke-linejoin:round}
+@keyframes draw{to{stroke-dashoffset:0}}
+.spin{width:11px;height:11px;border-radius:50%;border:2.5px solid currentColor;border-right-color:transparent;animation:rot .9s linear infinite}@keyframes rot{to{transform:rotate(360deg)}}
+.result{margin-top:16px}
+.res{border:1.5px dashed var(--line2);border-radius:14px;padding:14px;animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(8px)}}
+.res.err{border-color:var(--rose);background:rgba(255,45,149,.1);color:#ff8cc4;font-weight:600}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.big{font-weight:700;font-size:1.05rem}.meta{color:var(--muted);font-size:.85rem}
+.mini{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.mini span{font-size:12.5px;background:rgba(0,123,167,.18);border-radius:8px;padding:4px 10px;font-weight:600}
+.tw{overflow-x:auto;margin-top:8px}table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:12px;border-bottom:1px solid rgba(0,123,167,.14)}
+tbody tr{animation:slide .5s ease backwards}tbody tr:hover{background:rgba(0,123,167,.1)}
+tbody tr.flash{animation:flash 1.6s ease}
+@keyframes slide{from{opacity:0;transform:translateX(-18px)}}@keyframes flash{0%,60%{background:rgba(255,45,149,.25)}}
+.empty{text-align:center;color:var(--muted);padding:28px}
+#toast{position:fixed;right:18px;bottom:18px;z-index:20;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--glass2);border:1px solid var(--line2);border-left:5px solid var(--cer);padding:11px 16px;border-radius:12px;backdrop-filter:blur(12px);animation:ti .35s,to .4s 3.2s forwards;max-width:320px}
+.toast.err{border-left-color:var(--rose)}@keyframes ti{from{opacity:0;transform:translateX(30px)}}@keyframes to{to{opacity:0;transform:translateX(30px)}}
+/* footer credit */
+.foot{border-top:1px solid var(--line);padding:56px 0 40px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.7))}
+.foot-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:36px;align-items:center}
+.credit small{display:block;color:var(--muted);font-size:14px;margin-bottom:10px}
+.name{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(34px,6vw,64px);line-height:1;letter-spacing:-.01em;background:linear-gradient(100deg,var(--cer-2),#fff 35%,var(--rose) 65%,var(--cer-2));background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite;filter:drop-shadow(0 0 22px rgba(255,45,149,.35))}
+@keyframes shine{to{background-position:-250% 0}}
+.reg{display:inline-block;margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--rose);border:1px solid rgba(255,45,149,.5);border-radius:8px;padding:6px 12px;letter-spacing:.08em;box-shadow:0 0 18px -4px rgba(255,45,149,.5)}
+.code{background:#050708;border:1px solid var(--line2);border-radius:14px;overflow:hidden;box-shadow:0 0 40px -14px rgba(0,123,167,.8)}
+.code .bar{display:flex;gap:7px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);font:500 12px 'JetBrains Mono',monospace;color:var(--muted2)}
+.code .bar i{width:10px;height:10px;border-radius:50%;background:var(--cer)}.code .bar i:nth-child(2){background:var(--rose)}.code .bar i:nth-child(3){background:#fff3}
+.code pre{padding:16px 18px;font:500 13px/1.7 'JetBrains Mono',monospace;color:#cfe3ec;overflow-x:auto}
+.k{color:var(--rose)}.s{color:var(--cer-2)}.c{color:var(--muted2)}
+.legal{margin-top:34px;color:var(--muted2);font-size:13px;text-align:center}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.grid,.foot-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.nav-links{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important}[data-reveal]{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="page" id="top">
+<header class="hero"><div class="wrap" style="flex:1;display:flex;flex-direction:column">
+  <nav class="nav">
+    <a class="brand" href="#top"><i><svg viewBox="0 0 24 24"><path d="M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z"/></svg></i>MediTrack</a>
+    <div class="nav-links"><a href="#status">Dashboard</a><a href="#submit">Submit</a><a href="#records">Records</a><a href="/swagger-ui.html" target="_blank" rel="noopener">API docs</a></div>
+    <div class="pulse-pill"><span class="d"></span>HR <b id="bpm">72</b> bpm</div>
+  </nav>
+  <div class="hero-body"><div class="hero-copy">
+    <h1 data-reveal style="--rd:60ms">Every test tracked.<br>Every patient <span>on pulse.</span></h1>
+    <p data-reveal style="--rd:180ms">Send lab and imaging results in one line, see what is completed or pending, and look up any patient in seconds.</p>
+    <div class="acts" data-reveal style="--rd:300ms"><a class="btn btn-primary" href="#submit">Submit test results</a><a class="btn btn-line" href="#records">View records</a></div>
+  </div></div>
+</div></header>
+
+<main class="wrap">
+<section class="sec" id="status" style="padding-bottom:0">
+  <div class="stats">
+    <div class="card stat" data-reveal><b id="sTotal">0</b><span>Tests on record</span></div>
+    <div class="card stat" data-reveal style="--rd:80ms"><b id="sDone">0</b><span>Completed</span></div>
+    <div class="card stat" data-reveal style="--rd:160ms"><b id="sPend">0</b><span>Pending</span></div>
+    <div class="card stat" data-reveal style="--rd:240ms"><b id="sPat">0</b><span>Patients</span></div>
+  </div>
+</section>
+<section class="sec" id="submit" style="padding-top:60px">
+  <div class="sec-head" data-reveal><h2>Run the lab from one input</h2><p>Enter <code>PatientID-TEST:STATUS</code> separated by commas. C means Completed, P means Pending. The last entry for the same patient and test wins.</p></div>
+  <div class="grid">
+    <div class="card" data-reveal>
+      <h3>Submit test results</h3>
+      <label for="input">Input string</label>
+      <textarea id="input" spellcheck="false">1001-BLOOD:C,1002-XRAY:P,1003-SCAN:C,1001-BLOOD:P</textarea>
+      <div class="actions"><button class="btn btn-primary" id="btnSave">Send to lab</button>
+        <button class="chip" data-fill="1001-BLOOD:C,1002-XRAY:P,1003-SCAN:C,1001-BLOOD:P">Sample</button>
+        <button class="chip" data-fill="2001-MRI:P,2001-MRI:C,2002-ECG:P">Overwrite demo</button>
+        <button class="chip" data-fill="1004-:C">Invalid demo</button></div>
+      <div class="result" id="saveResult" aria-live="polite"></div>
+    </div>
+    <div class="card" data-reveal style="--rd:120ms">
+      <h3>Fetch treatment status</h3><p class="hint">Look up one test by Patient ID and test name.</p>
+      <div class="row"><div><label for="pid">Patient ID</label><input id="pid" value="1001" inputmode="numeric"></div><div><label for="ptest">Test</label><input id="ptest" value="BLOOD"></div></div>
+      <div class="actions"><button class="btn btn-primary" id="btnGet">Fetch status</button></div>
+      <div class="result" id="getResult" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+<section class="sec" id="records" style="padding-top:0">
+  <div class="card" data-reveal>
+    <div class="top"><div><h3>Patient treatment records</h3><p class="hint" style="margin-top:4px">Table <code>PATIENT_TREATMENT</code></p></div><button class="btn btn-line" id="btnRefresh">Refresh</button></div>
+    <div class="tw"><table><thead><tr><th>Patient ID</th><th>Test</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </div>
+</section>
+</main>
+
+<footer class="foot"><div class="wrap">
+  <div class="foot-grid">
+    <div class="credit" data-reveal>
+      <small>Adv Java project developed by</small>
+      <div class="name">RAGHUL S</div>
+      <span class="reg">RA2412704010018</span>
+    </div>
+    <div class="code" data-reveal style="--rd:120ms"><div class="bar"><i></i><i></i><i></i>&nbsp;webdeveloper.js</div>
+<pre><span class="c">// web developer</span>
+<span class="k">const</span> dev = {
+  name: <span class="s">"RAGHUL S"</span>,
+  regNo: <span class="s">"RA2412704010018"</span>,
+  role: <span class="s">"Web Developer"</span>,
+  stack: [<span class="s">"Java"</span>, <span class="s">"Spring Boot"</span>, <span class="s">"JS"</span>]
+};
+<span class="k">console</span>.log(<span class="s">`Built by ${dev.name}`</span>);</pre></div>
+  </div>
+  <p class="legal">Hospital Patient Treatment Status · Advanced Java · SRMIST · <a href="/swagger-ui.html" target="_blank" rel="noopener" style="color:var(--cer-2)">Swagger UI</a></p>
+</div></footer>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import * as THREE from 'three';
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CER = new THREE.Color('#007BA7'), ROSE = new THREE.Color('#FF2D95'), CER2 = new THREE.Color('#2fb4e0');
+
+/* ---------- smooth scroll (optional) ---------- */
+if (!RM) import('https://unpkg.com/lenis@1.3.23/dist/lenis.mjs').then(m => {
+  const l = new m.default({ duration: 1.15, smoothWheel: true });
+  const raf = t => { l.raf(t); requestAnimationFrame(raf); }; requestAnimationFrame(raf);
+}).catch(() => {});
+
+/* ---------- reveal ---------- */
+const els = document.querySelectorAll('[data-reveal]');
+if (RM) els.forEach(e => e.classList.add('in'));
+else { const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .18, rootMargin: '0px 0px -8% 0px' });
+  els.forEach(e => io.observe(e)); }
+
+/* ---------- medical WebGL scene ---------- */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x0A0A0A);
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(40, 1, .1, 100); cam.position.set(0, 0, 9);
+
+const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); const r = g.createRadialGradient(32,32,0,32,32,32);
+  r.addColorStop(0,'rgba(255,255,255,1)'); r.addColorStop(.25,'rgba(255,255,255,.55)'); r.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); })();
+const crossTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.shadowColor = '#fff'; g.shadowBlur = 8;
+  g.fillRect(24,8,16,48); g.fillRect(8,24,48,16); return new THREE.CanvasTexture(c); })();
+const pm = (map, size, vc) => new THREE.PointsMaterial({ map, size, vertexColors: vc, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+
+const world = new THREE.Group(); scene.add(world);
+/* DNA helix */
+const N = 64, H = 9, R = 1.05, TURNS = 3.2;
+const sp = [], sc = [], rp = [], rc = [];
+for (let i = 0; i < N; i++) {
+  const t = i / (N - 1), y = (t - .5) * H, a = t * Math.PI * 2 * TURNS;
+  const A = [Math.cos(a) * R, y, Math.sin(a) * R], B = [Math.cos(a + Math.PI) * R, y, Math.sin(a + Math.PI) * R];
+  sp.push(...A, ...B); sc.push(CER2.r, CER2.g, CER2.b, ROSE.r, ROSE.g, ROSE.b);
+  for (let k = 0; k <= 6; k++) { const u = k / 6; rp.push(A[0] + (B[0]-A[0])*u, y, A[2] + (B[2]-A[2])*u); const c = CER.clone().lerp(ROSE, u); rc.push(c.r*.7, c.g*.7, c.b*.7); }
+}
+const strand = new THREE.BufferGeometry(); strand.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); strand.setAttribute('color', new THREE.Float32BufferAttribute(sc, 3));
+const rungs = new THREE.BufferGeometry(); rungs.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3)); rungs.setAttribute('color', new THREE.Float32BufferAttribute(rc, 3));
+const helix = new THREE.Group(); helix.add(new THREE.Points(strand, pm(glowTex, .55, true)), new THREE.Points(rungs, pm(glowTex, .13, true)));
+helix.rotation.z = .35; world.add(helix);
+/* ECG pulse line */
+const EP = 220, ecgGeo = new THREE.BufferGeometry(); const ecgPos = new Float32Array(EP * 3);
+ecgGeo.setAttribute('position', new THREE.BufferAttribute(ecgPos, 3));
+const ecg = new THREE.Line(ecgGeo, new THREE.LineBasicMaterial({ color: ROSE, transparent: true, opacity: .9, blending: THREE.AdditiveBlending }));
+const ecgGlow = new THREE.Points(ecgGeo, pm(glowTex, .22, false)); ecgGlow.material.color = ROSE;
+scene.add(ecg, ecgGlow);
+const beat = x => { const m = ((x % 1) + 1) % 1; const g = (c, w, h) => h * Math.exp(-Math.pow((m - c) / w, 2));
+  return g(.18,.035,.18) - g(.4,.012,.22) + g(.43,.014,1) - g(.465,.014,.45) + g(.7,.05,.26); };
+/* floating crosses */
+const CN = 70, cp = new Float32Array(CN * 3), cs = [];
+for (let i = 0; i < CN; i++) { cp.set([(Math.random()-.5)*18, (Math.random()-.5)*12, -2 - Math.random()*6], i*3); cs.push(.05 + Math.random()*.12); }
+const crossGeo = new THREE.BufferGeometry(); crossGeo.setAttribute('position', new THREE.BufferAttribute(cp, 3));
+const crossM = pm(crossTex, .28, false); crossM.color = CER2; crossM.opacity = .35;
+scene.add(new THREE.Points(crossGeo, crossM));
+/* dust */
+const DN = 500, dp = new Float32Array(DN * 3); for (let i = 0; i < DN * 3; i++) dp[i] = (Math.random() - .5) * 26;
+const dustG = new THREE.BufferGeometry(); dustG.setAttribute('position', new THREE.BufferAttribute(dp, 3));
+const dust = new THREE.Points(dustG, pm(glowTex, .07, false)); dust.material.color = ROSE; dust.material.opacity = .45; scene.add(dust);
+
+const sm = (t) => t * t * (3 - 2 * t);
+const keys = [[0, 2.6, 0, 1.15], [.35, -3.4, 0.2, .8], [.7, 3.4, 0, .75], [1, 0, .3, .9]];
+const sample = (p, i) => { for (let k = 0; k < keys.length - 1; k++) if (p <= keys[k+1][0]) { const t = sm((p - keys[k][0]) / (keys[k+1][0] - keys[k][0])); return keys[k][i] + (keys[k+1][i] - keys[k][i]) * t; } return keys[keys.length-1][i]; };
+let cur = 0, cx = 0, cy = 0, cs_ = 1, spin = 0, T = 0, entry = 0, last = performance.now();
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; T += dt;
+  const max = Math.max(1, document.documentElement.scrollHeight - innerHeight), tgt = Math.min(1, Math.max(0, scrollY / max));
+  cur += (tgt - cur) * Math.min(1, dt * 4.5);
+  const side = Math.min(1, Math.max(.5, innerWidth / 1200)), mob = innerWidth < 760;
+  const tx = mob ? 0 : sample(cur, 1) * side, ty = sample(cur, 2), ts = sample(cur, 3) * (mob ? .7 : 1), k = Math.min(1, dt * 3.2);
+  cx += (tx - cx) * k; cy += (ty - cy) * k; cs_ += (ts - cs_) * k;
+  entry = RM ? 1 : Math.min(1, entry + dt / 1.8); const e = 1 - Math.pow(1 - entry, 3);
+  world.position.set(cx, cy - (1 - e) * 6, 0); world.scale.setScalar(cs_);
+  spin += dt * .35; helix.rotation.y = spin + cur * Math.PI * 3;
+  /* ecg: scrolling trace across the lower screen */
+  const half = 6.5; for (let i = 0; i < EP; i++) { const u = i / (EP - 1); ecgPos[i*3] = (u - .5) * half * 2; ecgPos[i*3+1] = -3 + beat(u * 2.2 - T * .45) * .9; ecgPos[i*3+2] = -1; }
+  ecgGeo.attributes.position.needsUpdate = true; ecg.material.opacity = .85 * (1 - cur * .6);
+  for (let i = 0; i < CN; i++) { cp[i*3+1] += cs[i] * dt; if (cp[i*3+1] > 6.5) cp[i*3+1] = -6.5; }
+  crossGeo.attributes.position.needsUpdate = true; dust.rotation.y = T * .015;
+  renderer.render(scene, cam); requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- app logic (same REST API) ---------- */
+const API = location.protocol.startsWith('http') ? '/api/treatments' : 'http://localhost:8080/api/treatments';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+setInterval(() => { $('bpm').textContent = 68 + Math.floor(Math.random() * 10); }, 1400);
+function toast(m, err) { const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = m; $('toast').appendChild(t); setTimeout(() => t.remove(), 3700); }
+const pill = s => s === 'COMPLETED'
+  ? '<span class="pill COMPLETED"><svg class="tick" viewBox="0 0 16 16"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>COMPLETED</span>'
+  : '<span class="pill PENDING"><span class="spin"></span>PENDING</span>';
+function countTo(el, to) { const from = parseInt(el.textContent, 10) || 0; if (from === to) return; const st = performance.now();
+  const step = n => { const p = Math.min(1, (n - st) / 700); el.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+async function api(path, opts) {
+  let res; try { res = await fetch(API + path, opts); } catch (e) { throw new Error('Cannot reach the server. Is the Spring Boot app running on port 8080?'); }
+  let data = null; try { data = await res.json(); } catch (e) {}
+  if (!res.ok) throw new Error((data && data.message) || ('Request failed (' + res.status + ')')); return data;
+}
+let flash = new Set();
+async function loadAll() {
+  try {
+    const list = await api('');
+    countTo($('sTotal'), list.length); countTo($('sDone'), list.filter(r => r.status === 'COMPLETED').length);
+    countTo($('sPend'), list.filter(r => r.status === 'PENDING').length); countTo($('sPat'), new Set(list.map(r => r.id)).size);
+    const body = $('rows');
+    if (!list.length) { body.innerHTML = '<tr><td colspan="3" class="empty">No records yet. Submit test results above to see them here.</td></tr>'; return; }
+    body.innerHTML = list.map((r, i) => `<tr class="${flash.has(r.id + '|' + r.test) ? 'flash' : ''}" style="animation-delay:${Math.min(i, 12) * 45}ms"><td><b>#${esc(r.id)}</b></td><td>${esc(r.test)}</td><td>${pill(r.status)}</td></tr>`).join('');
+    flash = new Set();
+  } catch (e) { toast(e.message, true); }
+}
+$('btnSave').onclick = async () => {
+  const b = $('btnSave'), out = $('saveResult'); b.disabled = true; b.textContent = 'Sending…';
+  try {
+    const s = await api('', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ input: $('input').value }) });
+    flash = new Set(s.saved.map(r => r.id + '|' + r.test));
+    out.innerHTML = `<div class="res"><div class="big">Saved to PATIENT_TREATMENT</div>
+      <div class="mini"><span>${s.recordsReceived} received</span><span>${s.recordsSaved} saved</span><span>${s.duplicatesOverwritten} overwritten</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px">${s.saved.map(r => `<div class="top"><span><b>#${esc(r.id)}</b> ${esc(r.test)}</span>${pill(r.status)}</div>`).join('')}</div></div>`;
+    toast('Records saved successfully'); loadAll();
+  } catch (e) { out.innerHTML = `<div class="res err">${esc(e.message)}</div>`; toast('Nothing was saved', true); }
+  finally { b.disabled = false; b.textContent = 'Send to lab'; }
+};
+$('btnGet').onclick = async () => {
+  const out = $('getResult'), id = $('pid').value.trim(), test = $('ptest').value.trim();
+  if (!id || !test) { out.innerHTML = '<div class="res err">Enter both Patient ID and Test.</div>'; return; }
+  try { const r = await api('/' + encodeURIComponent(id) + '/' + encodeURIComponent(test));
+    out.innerHTML = `<div class="res"><div class="top"><div><div class="big">Patient #${esc(r.id)}</div><div class="meta">${esc(r.test)} test</div></div>${pill(r.status)}</div></div>`;
+  } catch (e) { out.innerHTML = `<div class="res err">${esc(e.message)}</div>`; }
+};
+$('btnRefresh').onclick = loadAll;
+document.querySelectorAll('[data-fill]').forEach(b => b.onclick = () => { $('input').value = b.dataset.fill; });
+loadAll();
+</script>
+</body>
+</html>

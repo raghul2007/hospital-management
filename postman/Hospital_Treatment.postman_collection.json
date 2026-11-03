@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "Hospital Patient Treatment Status",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:8080" }],
+  "item": [
+    {
+      "name": "POST - save sample string (expect 201)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('201 Created', () => pm.response.to.have.status(201));",
+        "pm.test('3 unique rows, 1 overwritten', () => {",
+        "  const j = pm.response.json();",
+        "  pm.expect(j.recordsSaved).to.eql(3);",
+        "  pm.expect(j.duplicatesOverwritten).to.eql(1);",
+        "});"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"1001-BLOOD:C,1002-XRAY:P,1003-SCAN:C,1001-BLOOD:P\"\n}" },
+        "url": "{{baseUrl}}/api/treatments"
+      }
+    },
+    {
+      "name": "GET - 1001 BLOOD (expect PENDING - last occurrence)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('PENDING', () => pm.expect(pm.response.json().status).to.eql('PENDING'));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/treatments/1001/BLOOD" }
+    },
+    {
+      "name": "GET - 1003 SCAN (expect COMPLETED)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('COMPLETED', () => pm.expect(pm.response.json().status).to.eql('COMPLETED'));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/treatments/1003/SCAN" }
+    },
+    {
+      "name": "GET - unknown patient (expect 404)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('404', () => pm.response.to.have.status(404));"] } }],
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/treatments/9999/XRAY" }
+    },
+    {
+      "name": "GET - all records",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/treatments" }
+    },
+    {
+      "name": "POST - missing Test (expect 400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400', () => pm.response.to.have.status(400));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"1001-:C\"\n}" },
+        "url": "{{baseUrl}}/api/treatments"
+      }
+    },
+    {
+      "name": "POST - invalid status code (expect 400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400', () => pm.response.to.have.status(400));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"1004-ECG:Z\"\n}" },
+        "url": "{{baseUrl}}/api/treatments"
+      }
+    },
+    {
+      "name": "POST - empty input (expect 400)",
+      "event": [{ "listen": "test", "script": { "exec": [
+        "pm.test('400', () => pm.response.to.have.status(400));"] } }],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"input\": \"\"\n}" },
+        "url": "{{baseUrl}}/api/treatments"
+      }
+    }
+  ]
+}
